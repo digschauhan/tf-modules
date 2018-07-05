@@ -1,0 +1,54 @@
+#!/bin/bash
+echo "hello"
+
+sudo yum update -y
+
+sudo yum wget
+
+  - name: Install openJDK
+    yum:
+      name: java-1.8.0-openjdk
+      state: present
+
+  - name: Install Git
+    yum:
+      name: git
+      state: present
+
+  - name: Download Jenkins Repo
+    get_url:
+      url: http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
+      dest: /etc/yum.repos.d/jenkins.repo
+
+  - name: Import Jenkins Key
+    rpm_key:
+      key: https://jenkins-ci.org/redhat/jenkins-ci.org.key
+      state: present
+
+  - name: Install Jenkins
+    yum:
+      name: jenkins
+      state: present
+
+  - name: Start Jenkins
+    sytemd:
+      name: jenkins
+      state: started
+
+  - name: Enable Jenkins
+    sytemd:
+      name: jenkins
+      enabled: true
+
+  - name: Sleep for 30 Seconds
+    wait_for: timeout=30
+    delegate_to: localhost
+
+  - name: Jenkins Initial Password
+    shell: cat /var/lib/jenkins/secrets/initialAdminPassword
+    chaned_when: false
+    register: result
+
+  - name: Print initial Jenkins password
+    debug:
+      var: result.stdout
